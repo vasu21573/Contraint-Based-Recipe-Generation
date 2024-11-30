@@ -1,16 +1,15 @@
-import re
-import json
 import os
 import math
-import torch
+import json
 import random
 import numpy as np
 import pandas as pd
 from tqdm import trange
+import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from transformers import  AutoTokenizer,AutoModelWithLMHead
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoTokenizer, AutoModelWithLMHead
+from typing import List, Dict, Tuple
 
 
 
@@ -100,43 +99,81 @@ def sample_sequence(model, length, context, tokenizer, num_samples=1, temperatur
 
 
 
-class Ratatouile:
-    def forward(self,ingredients):
-        novelRecipeGenerated,_=startRatatouileModel(ingredients)
+class RatatouilleModel:
+    def __init__(self, model_name: str = "GPT2_NEW", device: str = "cuda"):
+        """
+        Initializes the Ratatouille model.
 
-        return novelRecipeGenerated
+        Args:
+            model_name (str): Name of the pretrained model.
+            device (str): Device to run the model on ("cuda" or "cpu").
+        """
+        self.device = torch.device(device)
+        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+        self.model = GPT2LMHeadModel.from_pretrained(model_name).to(self.device)
+        self.model.eval()
 
-    def get_novel_recipe(self,ingredients,print_full=False):
-        ingredients=";".join(ingredients)
-        text=self.forward(ingredients)
+    def generate_recipe(self, ingredients: List[str]) -> Dict[str, List[str]]:
+        """
+        Generates a novel recipe based on a list of ingredients.
 
-        if(print_full):
-            print(text)
+        Args:
+            ingredients (List[str]): List of input ingredients.
 
+        Returns:
+            Dict[str, List[str]]: Generated recipe including title, ingredients, and instructions.
+        """
+        raw_text = ";".join(ingredients)
+        input_text = f"<RECIPE_START> <INPUT_START> {raw_text.replace(',', ' <NEXT_INPUT> ').replace(';', ' <INPUT_END>')}"
+        context_tokens = self.tokenizer.encode(input_text)
 
-        # POST-PROCESS-START
-        start = text.find("<RECIPE_START>")
-        end = text.find("<RECIPE_END>", start) + len("<RECIPE_END>")
-        recipe_text = text[start:end]
-        title_start = recipe_text.find("<TITLE_START>") + len("<TITLE_START>")
-        title_end = recipe_text.find("<TITLE_END>")
-        title = recipe_text[title_start:title_end].strip()
-        ingr_start = recipe_text.find("<INGR_START>") + len("<INGR_START>")
-        ingr_end = recipe_text.find("<INGR_END>")
-        ingredients = recipe_text[ingr_start:ingr_end].strip().split(" <NEXT_INGR> ")
-        instr_start = recipe_text.find("<INSTR_START>") + len("<INSTR_START>")
-        instr_end = recipe_text.find("<INSTR_END>")
-        instructions = recipe_text[instr_start:instr_end].strip().split(" <NEXT_INSTR> ")
-        # POST-PROCESS-END
+        output_tokens = sample_sequence(
+            model=self.model,
+            tokenizer=self.tokenizer,
+            context=context_tokens,
+            length=768,
+            temperature=1.0,
+            top_k=30,
+            top_p=0.9,
+            device=self.device
+        )
+        generated_text = self.tokenizer.decode(output_tokens[0, len(context_tokens):], clean_up_tokenization_spaces=True)
 
+        if "<RECIPE_END>" not in generated_text:
+            raise ValueError("Failed to generate a complete recipe.")
+
+        return self._post_process_recipe(generated_text)
+
+    def _post_process_recipe(self, text: str) -> Dict[str, List[str]]:
+        """
+        Extracts and structures recipe information from generated text.
+
+        Args:
+            text (str): Generated text from the model.
+
+        Returns:
+            Dict[str, List[str]]: Extracted recipe information.
+        """
         recipe_json = {
-            "title": title,
-            "ingredients": ingredients,
-            "instructions": instructions
+            "title": self._extract_between(text, "<TITLE_START>", "<TITLE_END>"),
+            "ingredients": self._extract_between(text, "<INGR_START>", "<INGR_END>").split(" <NEXT_INGR> "),
+            "instructions": self._extract_between(text, "<INSTR_START>", "<INSTR_END>").split(" <NEXT_INSTR> ")
         }
-
         return recipe_json
-        
-        
 
-        
+    @staticmethod
+    def _extract_between(text: str, start_tag: str, end_tag: str) -> str:
+        """
+        Extracts text between two tags.
+
+        Args:
+            text (str): Text to extract from.
+            start_tag (str): Starting tag.
+            end_tag (str): Ending tag.
+
+        Returns:
+            str: Extracted text.
+        """
+        start = text.find(start_tag) + len(start_tag)
+        end = text.find(end_tag)
+        return text[start:end].strip()
