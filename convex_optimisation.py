@@ -25,7 +25,7 @@ class Optimisation:
         
         # Load nutrient data
         try:
-            with open("dataset_nutrients.json") as f:
+            with open("./resources/dataset_nutrients.json") as f:
                 macro_nutrients = json.load(f)
         except FileNotFoundError:
             raise FileNotFoundError("Nutrient dataset file 'dataset_nutrients.json' not found.")
