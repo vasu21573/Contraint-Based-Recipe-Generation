@@ -48,12 +48,23 @@ class Optimisation:
         total_proteins = np.dot(x, self.proteins_per_gram)
         total_fats = np.dot(x, self.fats_per_gram)
 
-        min_calories=self.constraints["calories"]["min"]
-        max_calories=self.constraints["calories"]["max"]
-        min_proteins=self.constraints["proteins"]["min"]
-        max_proteins=self.constraints["proteins"]["max"]
-        min_fats=self.constraints["fats"]["min"]
-        max_fats=self.constraints["fats"]["max"]
+        min_calories=-1
+        min_proteins=-1
+        min_fats=-1
+        
+        max_calories=1e8
+        max_proteins=1e8
+        max_fats=1e8
+    
+        if("calories" in self.constraints.keys()):
+            min_calories=self.constraints["calories"]["min"]
+            max_calories=self.constraints["calories"]["max"]
+        if("proteins" in self.constraints.keys()):
+            min_proteins=self.constraints["proteins"]["min"]
+            max_proteins=self.constraints["proteins"]["max"]
+        if("fats" in self.constraints.keys()):
+            min_fats=self.constraints["fats"]["min"]
+            max_fats=self.constraints["fats"]["max"]
         
         
         penalty = 0
