@@ -92,10 +92,11 @@ This project builds on the groundwork established by the Ratatouille research in
 This project, **Recipe Generator with Macronutrient Constraints**, was developed as part of an academic initiative under the [**CoSy Lab**](https://cosylab.iiitd.edu.in/) at **IIIT-Delhi**, during the Monsoon Semester of 2024.
 
 **Contributors:**
-- **Vinayak**: [LinkedIn](www.linkedin.com/in/kayaniv) | [E-Mail](vinayak21574@iiitd.ac.in)  
-- **Vasu**: [E-Mail](vasu21573@iiitd.ac.in)
-- **Mohit**: [E-Mail](mohit21542@iiitd.ac.in)
-- **Parth**: [E-Mail](parth21548@iiitd.ac.in)
+
+- **[Vinayak](mailto:vinayak21574@iiitd.ac.in)** | [LinkedIn](https://www.linkedin.com/in/kayaniv)
+- **[Vasu](mailto:vasu21573@iiitd.ac.in)**
+- **[Mohit](mailto:mohit21542@iiitd.ac.in)**
+- **[Parth](mailto:parth21548@iiitd.ac.in)**
 
 **Citations:**
 Mansi Goel, Pallab Chakraborty, Vijay Ponnaganti, Minnet Khan, Sritanaya Tatipamala, Aakanksha Saini, and Ganesh Bagler. Ratatouille: A tool for Novel Recipe Generation. IEEE 38th International Conference on Data Engineering Workshop (ICDEW) 2022 (https://ieeexplore.ieee.org/document/9814641).
